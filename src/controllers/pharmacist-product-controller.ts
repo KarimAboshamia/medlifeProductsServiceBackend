@@ -6,11 +6,14 @@ import { startSession, Types } from 'mongoose';
 
 import PharmacyProduct from '../models/pharmacy-product-model';
 import Product from '../models/admin-product-model';
-import { getError, returnResponse } from '../utilities/response-utility';
+import { getAxiosError, getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
+import { getServiceToken } from '../utilities/service-utility';
 
-const imageServiceURL = process.env.IMAGE_SERVICE_URL;
-const pharmacyServiceURL = process.env.PHARMACY_SERVICE_URL;
+const gatewayServiceURL = process.env.GATEWAY_SERVICE_URL;
+const gatewayServiceUsername = process.env.GATEWAY_SERVICE_USERNAME;
+const gatewayServicePassword = process.env.GATEWAY_SERVICE_PASSWORD;
+const gatewayServiceToken = getServiceToken(gatewayServiceUsername, gatewayServicePassword);
 
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data from request body
@@ -47,13 +50,21 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
 
     //! [5] Add product in the pharmacy - send product ID
     try {
-        await axios.post(`${pharmacyServiceURL}/api/pharmacist/pharmacy/products/add`, {
-            pharmacyId,
-            productId: pharmacyProduct._id,
-        });
+        await axios.post(
+            `${gatewayServiceURL}/api/pharmacist/pharmacy/products/add/id`,
+            {
+                pharmacyId,
+                productId: pharmacyProduct._id,
+            },
+            {
+                headers: {
+                    Authorization: gatewayServiceToken,
+                },
+            }
+        );
     } catch (error) {
         await session.abortTransaction();
-        return next(error?.response?.data || error);
+        return next(getAxiosError(error));
     }
 
     await session.commitTransaction();
@@ -63,7 +74,6 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         product: { ...pharmacyProduct.toObject() },
     });
 };
-
 
 const modifyProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data

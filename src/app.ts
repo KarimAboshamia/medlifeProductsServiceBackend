@@ -51,6 +51,6 @@ mongoose
         autoIndex: Boolean(process.env.DB_AUTO_INDEX),
     })
     .then(() => {
-        app.listen(process.env.PORT || 8080);
+        app.listen(process.env.PORT || 8084);
     })
     .catch(console.log);

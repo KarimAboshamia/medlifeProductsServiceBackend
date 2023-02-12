@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import Product from '../models/admin-product-model';
 import PharmacyProduct from '../models/pharmacy-product-model';
-import { getError, returnResponse } from '../utilities/response-utility';
+import { getError, returnResponse, getAxiosError, getAxiosResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { startSession, Types } from 'mongoose';
 
@@ -64,7 +64,7 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
             pr.images = responseURLs.data.responseURLs[products.indexOf(pr)];
         }
     } catch (err) {
-        return next(getError(ResponseMsgAndCode.ERROR_GENERATE_IMAGE_URLS));
+        return next(getAxiosError(err));
     }
 
     //! [6] Return response
@@ -114,7 +114,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             pr.product[0].images = responseURLs.data.responseURLs[products.indexOf(pr)];
         }
     } catch (err) {
-        return next(getError(ResponseMsgAndCode.ERROR_GENERATE_IMAGE_URLS));
+        return next(getAxiosError(err));
     }
 
     //! [5] Return response
@@ -189,7 +189,7 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
             pr.product[0].images = responseURLs.data.responseURLs[products.indexOf(pr)];
         }
     } catch (err) {
-        return next(getError(ResponseMsgAndCode.ERROR_GENERATE_IMAGE_URLS));
+        return next(getAxiosError(err));
     }
 
     //! [6] Return response

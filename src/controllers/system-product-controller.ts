@@ -55,17 +55,17 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         productsImagesNames.push(pr.images);
     }
 
-    try {
-        const responseURLs = await axios.post(`${imageServiceURL}/images/generate`, {
-            images: productsImagesNames,
-        });
+    // try {
+    //     const responseURLs = await axios.post(`${imageServiceURL}/images/generate`, {
+    //         images: productsImagesNames,
+    //     });
 
-        for (let pr of products) {
-            pr.images = responseURLs.data.responseURLs[products.indexOf(pr)];
-        }
-    } catch (err) {
-        return next(getAxiosError(err));
-    }
+    //     for (let pr of products) {
+    //         pr.images = responseURLs.data.responseURLs[products.indexOf(pr)];
+    //     }
+    // } catch (err) {
+    //     return next(getAxiosError(err));
+    // }
 
     //! [6] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {

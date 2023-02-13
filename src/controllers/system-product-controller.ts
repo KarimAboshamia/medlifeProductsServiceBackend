@@ -168,14 +168,12 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     let productsImages = [];
     let counter = 0;
     for (let pr of products) {
-        return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {pr
-        });
-
-        // if(!pr.product[0].images) continue;
-        // let imagesUrls = await generateProductImagesURL(pr.product[0].images);
-        // productsImages.push(imagesUrls);
-        // pr.product[0].images = mapProductImages(pr.product[0].images, productsImages[counter]);
-        // counter++;
+        if (pr.product[0].images) {
+            let imagesUrls = await generateProductImagesURL(pr.product[0].images);
+            productsImages.push(imagesUrls);
+            pr.product[0].images = mapProductImages(pr.product[0].images, productsImages[counter]);
+            counter++;
+        }
     }
 
     //! [6] Return response

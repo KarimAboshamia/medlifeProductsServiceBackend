@@ -15,8 +15,6 @@ systemProductRouter.get(
 // Get All products in a specific pharmacy
 systemProductRouter.get(
     '/products/pharmacy/:pharmacyId',
-    getPharmacyProductsValidator,
-    validationResultChecker,
     productController.getPharmacyProducts
 );
 

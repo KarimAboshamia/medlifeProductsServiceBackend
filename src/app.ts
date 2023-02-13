@@ -27,7 +27,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/products', apiRouter);
+app.use('/product', apiRouter);
 
 app.use((req: ExpRequest, _res, _next: ExpNextFun) => {
     throw new ResponseError(`sorry, it seems that the URL '${req.url}' is not provided!`, 404);
@@ -43,6 +43,8 @@ app.use((error: any, _req: ExpRequest, res: ExpResponse, _next: ExpNextFun) => {
         extraData,
     });
 });
+
+mongoose.set('strictQuery', true);
 
 mongoose
     .connect(String(process.env.DB_URI), {

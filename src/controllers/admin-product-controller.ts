@@ -1,43 +1,42 @@
 import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNextFunc } from 'express';
-import FormData from 'form-data';
-import axios from 'axios';
 
 import Product from '../models/admin-product-model';
-import { getError, returnResponse } from '../utilities/response-utility';
+import { getAxiosError, getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { startSession } from 'mongoose';
-
-const imageServiceURL = process.env.IMAGE_SERVICE_URL;
+import ResponseError from '../models/response-error';
+import {
+    deleteProductImages,
+    generateProductImagesURL,
+    mapProductImages,
+    uploadProductImages,
+} from '../utilities/product-images-utility';
 
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract barcode from request body
     const { barcode } = req.body;
-    let uploadedImages = [];
+
+    let productImages = (req.files as Express.Multer.File[]).filter((file) =>
+        file.fieldname.match(/^productImages/)
+    );
+
+    if (productImages.length <= 0) {
+        return next(new ResponseError('product images are required!', 422));
+    }
+
     let product = await Product.findOne({ barcode }).exec();
 
-    //! [2] Check if product already exists
     if (!!product) {
         return next(getError(ResponseMsgAndCode.ERROR_EXIST_PRODUCT));
     }
 
-    //! [3] Upload images to image service
-    for (let i = 0; i < req.files.length; i++) {
-        const body = new FormData();
-        body.append('file', req.files[i].buffer, {
-            filename: req.files[i].originalname,
-            contentType: req.files[i].mimetype,
-        });
+    let uploadedImages = [];
 
-        try {
-            const response = await axios.post(`${imageServiceURL}/images/create`, body);
-
-            uploadedImages.push(response.data.name);
-        } catch (err) {
-            return next(getError(ResponseMsgAndCode.ERROR_UPLOAD_IMAGE));
-        }
+    try {
+        uploadedImages = await uploadProductImages(productImages);
+    } catch (error) {
+        return next(getAxiosError(error));
     }
 
-    //! [4] Create product
     product = await new Product({
         name: req.body.name,
         barcode,
@@ -54,40 +53,26 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         storage: req.body.storage,
     }).save();
 
-    //! [5] Generate images URLs
-    let productsImagesNames = [];
-    productsImagesNames.push(product.images);
+    let imagesURL = [];
 
     try {
-        const responseURLs = await axios.post(`${imageServiceURL}/images/generate`, {
-            images: productsImagesNames,
-        });
-        product.images = responseURLs.data.responseURLs[0];
-    } catch (err) {
-        return next(getError(ResponseMsgAndCode.ERROR_GENERATE_IMAGE_URLS));
+        imagesURL = (await generateProductImagesURL([product.images]))[0];
+    } catch (error) {
+        return next(getAxiosError(error));
     }
 
-    //! [6] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_CREATE_PRODUCT, {
-        product: { ...product.toObject() },
+        product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
     });
 };
 
 const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract query params - barcode
-    let barcode = req.query.barcode;
+    let { barcode } = req.params;
 
-    //! [2] Check if product already exists - IF NOT EXISTS - RETURN ERROR
     let product = await Product.findOne({ barcode: barcode }).exec();
 
     if (!product) {
         return next(getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE));
-    }
-
-    //! [3] Delete images from image service
-    let imageNames = [];
-    for (let pr of product.images) {
-        imageNames.push(pr);
     }
 
     const session = await startSession();
@@ -95,124 +80,138 @@ const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
     await product.remove({ session });
 
     try {
-        await axios.delete(`${imageServiceURL}/images/delete`, {
-            data: { imageName: imageNames },
-        });
+        await deleteProductImages(product.images);
     } catch (error) {
         await session.abortTransaction();
-        return next(error?.response?.data || error);
+        return next(getAxiosError(error));
     }
 
     await session.commitTransaction();
 
-    //! [4] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_DELETE_PRODUCT, {
         product: { ...product.toObject() },
     });
 };
 
 const updateProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract Request Body
-    const updatedData = {
-        ...req.body,
-    };
+    const { barcode: crtBarcode } = req.params;
+    let { barcode } = req.body;
 
-    //! [2] Check if barcode is provided - IF NOT PROVIDED - RETURN ERROR
-    if (!updatedData.barcode) {
-        return next(getError(ResponseMsgAndCode.ERROR_NO_BARCODE_PROVIDED));
+    if (!barcode) {
+        barcode = crtBarcode;
     }
 
-    //! [3] Check if product already exists - IF NOT EXISTS - RETURN ERROR
-    let product = await Product.findOne({ barcode: updatedData.barcode }).exec();
+    let product: any = barcode !== crtBarcode && (await Product.findOne({ barcode }));
+
+    if (product) {
+        return next(getError(ResponseMsgAndCode.ERROR_PRODUCT_BARCODE_EXIST_ALREADY));
+    }
+
+    product = await Product.findOne({ barcode: crtBarcode }).exec();
 
     if (!product) {
         return next(getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE));
     }
 
-    //! [4] Update product
-    for (let key in updatedData) {
-        product[key] = updatedData[key];
+    for (let key in req.body) {
+        product[key] = req.body[key];
     }
 
     product = await product.save();
 
-    //! [5] Return response
+    let imagesURL = [];
+
+    try {
+        imagesURL = (await generateProductImagesURL([product.images]))[0];
+    } catch (error) {
+        return next(getAxiosError(error));
+    }
+
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
-        product: { ...product.toObject() },
+        product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
     });
 };
 
 const addImages = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract barcode from Request Body
     const { barcode } = req.body;
-    let uploadedImages = [];
 
-    //! [2] Check if barcode is provided - IF NOT PROVIDED - RETURN ERROR
+    let productImages = (req.files as Express.Multer.File[]).filter((file) =>
+        file.fieldname.match(/^productImages/)
+    );
+
+    if (productImages.length <= 0) {
+        return next(new ResponseError('product images are required!', 422));
+    }
+
     let product = await Product.findOne({ barcode }).exec();
 
     if (!product) {
         return next(getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE));
     }
 
-    //! [3] Upload images to image service
-    for (let i = 0; i < req.files.length; i++) {
-        const body = new FormData();
-        body.append('file', req.files[i].buffer, {
-            filename: req.files[i].originalname,
-            contentType: req.files[i].mimetype,
-        });
+    let uploadedImages = [];
 
-        try {
-            const response = await axios.post(`${imageServiceURL}/images/create`, body);
-            uploadedImages.push(response.data.name);
-        } catch (err) {
-            return next(getError(ResponseMsgAndCode.ERROR_UPLOAD_IMAGE, err));
-        }
+    try {
+        uploadedImages = await uploadProductImages(productImages);
+    } catch (error) {
+        return next(getAxiosError(error));
     }
 
-    //! [4] Update product
     product.images = product.images.concat(uploadedImages);
     product = await product.save();
 
-    //! [5] Return response
+    let imagesURL = [];
+
+    try {
+        imagesURL = (await generateProductImagesURL([product.images]))[0];
+    } catch (error) {
+        return next(getAxiosError(error));
+    }
+
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
-        product: { ...product.toObject() },
+        product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
     });
 };
 
 const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract Request Params
-    const { barcode, image } = req.query;
-    let imageNames = [image];
+    const { barcode, image } = req.body;
 
-    //! [2] Check if barcode is provided - IF NOT PROVIDED - RETURN ERROR
     let product = await Product.findOne({ barcode }).exec();
+
     if (!product) {
         return next(getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE));
     }
 
+    if (product.images.length == 1) {
+        return next(getError(ResponseMsgAndCode.ERROR_NO_ENOUGH_IMAGES_TO_DELETE));
+    }
+
     const session = await startSession();
     session.startTransaction();
-    //! [3] Update product
-    let totalImages = product.images.filter((img) => img !== image);
-    product.images = totalImages;
+
+    product.images = product.images.filter((img) => img !== image);
     product = await product.save({ session });
 
-    //! [4] Delete image using image service
     try {
-        await axios.delete(`${imageServiceURL}/images/delete`, {
-            data: { imageName: imageNames },
-        });
-    } catch (err) {
+        await deleteProductImages(product.images);
+    } catch (error) {
         await session.abortTransaction();
-        return next(err?.response?.data || err);
+        return next(getAxiosError(error));
+    }
+
+    let imagesURL = [];
+
+    try {
+        imagesURL = (await generateProductImagesURL([product.images]))[0];
+    } catch (error) {
+        await session.abortTransaction();
+        return next(getAxiosError(error));
     }
 
     await session.commitTransaction();
 
-    //! [5] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
-        product: { ...product.toObject() },
+        product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
     });
 };
 

@@ -1,29 +1,47 @@
 import { Router } from 'express';
-import productController from '../controllers/admin-product-controller';
-import { validationResultChecker } from '../middleware/validation-result-middleware';
-import multer from 'multer';
 
-const storage = multer.memoryStorage();
-const uploadImages = multer({
-    storage: storage,
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
-            return cb(new Error('Please upload an image'));
-        }
-        cb(undefined, true);
-    },
-});
+import productController from '../controllers/admin-product-controller';
+import { imageUploader } from '../middleware/image-uploader-middleware';
+import { validationResultChecker } from '../middleware/validation-result-middleware';
+import {
+    addingProductImagesValidator,
+    creatingProductValidator,
+    deletingProductImageValidator,
+    updatingProductValidator,
+} from '../validators/admin-product-validator';
 
 const adminProductRouter = Router();
 
-adminProductRouter.post('/products/create', uploadImages.array('images'), productController.postProduct);
+adminProductRouter.post(
+    '/products/create',
+    imageUploader.any(),
+    creatingProductValidator,
+    validationResultChecker,
+    productController.postProduct
+);
 
-adminProductRouter.delete('/products/delete', validationResultChecker, productController.deleteProduct);
+adminProductRouter.delete('/products/delete/:barcode', productController.deleteProduct);
 
-adminProductRouter.patch('/products/update', validationResultChecker, productController.updateProduct);
+adminProductRouter.patch(
+    '/products/update/:barcode',
+    updatingProductValidator,
+    validationResultChecker,
+    productController.updateProduct
+);
 
-adminProductRouter.patch('/products/images/add', uploadImages.array('images'), productController.addImages);
+adminProductRouter.patch(
+    '/products/images/add',
+    imageUploader.any(),
+    addingProductImagesValidator,
+    validationResultChecker,
+    productController.addImages
+);
 
-adminProductRouter.delete('/products/images/delete', productController.deleteImage);
+adminProductRouter.delete(
+    '/products/images/delete',
+    deletingProductImageValidator,
+    validationResultChecker,
+    productController.deleteImage
+);
 
 export default adminProductRouter;

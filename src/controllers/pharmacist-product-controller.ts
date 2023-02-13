@@ -1,8 +1,6 @@
 import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNextFunc } from 'express';
 import axios from 'axios';
-import amqp from 'amqplib';
-import { uuid } from 'uuidv4';
-import { startSession, Types } from 'mongoose';
+import { startSession } from 'mongoose';
 
 import PharmacyProduct from '../models/pharmacy-product-model';
 import Product from '../models/admin-product-model';

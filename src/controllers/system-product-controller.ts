@@ -166,20 +166,12 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
 
     //! [5] Add images to products
     let productsImages = [];
+    let counter = 0;
     for (let pr of products) {
-        productsImages.push(pr.product[0].image);
-    }
-
-    try {
-        const responseURLs = await axios.post(`${imageServiceURL}/images/generate`, {
-            images: productsImages,
-        });
-
-        for (let pr of products) {
-            pr.product[0].images = responseURLs.data.responseURLs[products.indexOf(pr)];
-        }
-    } catch (err) {
-        return next(getAxiosError(err));
+        let imagesUrls = await generateProductImagesURL(pr.product[0].images);
+        productsImages.push(imagesUrls);
+        pr.product[0].images = mapProductImages(pr.product[0].images, productsImages[counter]);
+        counter++;
     }
 
     //! [6] Return response

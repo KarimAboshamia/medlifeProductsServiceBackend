@@ -1,4 +1,4 @@
-import { body, oneOf } from 'express-validator';
+import { body, oneOf, param } from 'express-validator';
 
 const pageValidator = body('page')
     .optional({ checkFalsy: true })
@@ -33,11 +33,6 @@ const categoriesValidator = body('categories')
     .isString()
     .withMessage('Categories must be a string');
 
-const pharmacyIdValidator = body('pharmacyId')
-    .exists({ checkFalsy: true })
-    .withMessage('Pharmacy ID is required')
-    .isMongoId()
-    .withMessage('Pharmacy ID is not valid');
 
 export const getProductPharmacyValidator = oneOf([nameValidator, barcodeValidator]);
 
@@ -48,7 +43,6 @@ export const getProductValidator = [
 ];
 
 export const getPharmacyProductsValidator = [
-    pharmacyIdValidator,
     pageValidator,
     itemsPerPageValidator,
     oneOf([nameValidator, barcodeValidator, typeValidator, categoriesValidator]),

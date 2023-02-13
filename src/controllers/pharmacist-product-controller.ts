@@ -34,9 +34,6 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         return next(getError(ResponseMsgAndCode.ERROR_EXIST_PRODUCT));
     }
 
-    const session = await startSession();
-    session.startTransaction();
-
     //! [4] Create the product
     const pharmacyProduct = await new PharmacyProduct({
         product: product._id,
@@ -44,28 +41,7 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         amount,
         price,
         offer,
-    }).save({ session });
-
-    //! [5] Add product in the pharmacy - send product ID
-    try {
-        await axios.post(
-            `${gatewayServiceURL}/api/pharmacist/pharmacy/products/add/id`,
-            {
-                pharmacyId,
-                productId: pharmacyProduct._id,
-            },
-            {
-                headers: {
-                    Authorization: gatewayServiceToken,
-                },
-            }
-        );
-    } catch (error) {
-        await session.abortTransaction();
-        return next(getAxiosError(error));
-    }
-
-    await session.commitTransaction();
+    }).save();
 
     //! [6] Return the response
     returnResponse(res, ResponseMsgAndCode.SUCCESS_PRODUCT_CREATED, {

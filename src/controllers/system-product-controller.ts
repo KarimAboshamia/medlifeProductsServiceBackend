@@ -167,13 +167,16 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     //! [5] Add images to products
     let productsImages = [];
     let counter = 0;
-    // for (let pr of products) {
-    //     if(!pr.product[0].images) continue;
-    //     let imagesUrls = await generateProductImagesURL(pr.product[0].images);
-    //     productsImages.push(imagesUrls);
-    //     pr.product[0].images = mapProductImages(pr.product[0].images, productsImages[counter]);
-    //     counter++;
-    // }
+    for (let pr of products) {
+        return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {             pr.product[0].images
+        });
+
+        // if(!pr.product[0].images) continue;
+        // let imagesUrls = await generateProductImagesURL(pr.product[0].images);
+        // productsImages.push(imagesUrls);
+        // pr.product[0].images = mapProductImages(pr.product[0].images, productsImages[counter]);
+        // counter++;
+    }
 
     //! [6] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {

@@ -50,6 +50,7 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
 
     let imagesURLs = [];
 
+
     try {
         imagesURLs = await generateProductImagesURL(products.map((product) => product.images));
     } catch (error) {

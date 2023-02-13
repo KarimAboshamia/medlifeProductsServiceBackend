@@ -168,7 +168,7 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     let productsImages = [];
     let counter = 0;
     for (let pr of products) {
-        return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {             pr.product[0].images
+        return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {pr
         });
 
         // if(!pr.product[0].images) continue;

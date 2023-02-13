@@ -44,6 +44,8 @@ app.use((error: any, _req: ExpRequest, res: ExpResponse, _next: ExpNextFun) => {
     });
 });
 
+mongoose.set('strictQuery', true);
+
 mongoose
     .connect(String(process.env.DB_URI), {
         user: process.env.DB_USERNAME,

@@ -2,12 +2,12 @@ import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNext
 import FormData from 'form-data';
 import axios from 'axios';
 
-
 import Product from '../models/admin-product-model';
 import PharmacyProduct from '../models/pharmacy-product-model';
-import { getError, returnResponse, getAxiosError, getAxiosResponse } from '../utilities/response-utility';
+import { returnResponse, getAxiosError } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
-import { startSession, Types } from 'mongoose';
+import { Types } from 'mongoose';
+import { generateProductImagesURL, mapProductImages } from '../utilities/product-images-utility';
 
 const imageServiceURL = process.env.IMAGE_SERVICE_URL;
 
@@ -48,32 +48,24 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         .skip((skipValue - 1) * limitValue)
         .exec();
 
-    //! [5] Generate images URLs
-    let productsImagesNames = [];
+    let imagesURLs = [];
 
-    for (let pr of products) {
-        productsImagesNames.push(pr.images);
+
+    try {
+        imagesURLs = await generateProductImagesURL(products.map((product) => product.images));
+    } catch (error) {
+        return next(getAxiosError(error));
     }
-
-    // try {
-    //     const responseURLs = await axios.post(`${imageServiceURL}/images/generate`, {
-    //         images: productsImagesNames,
-    //     });
-
-    //     for (let pr of products) {
-    //         pr.images = responseURLs.data.responseURLs[products.indexOf(pr)];
-    //     }
-    // } catch (err) {
-    //     return next(getAxiosError(err));
-    // }
 
     //! [6] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
-        products,
+        products: products.map((product, idx) => ({
+            ...product.toObject(),
+            images: mapProductImages(product.images, imagesURLs[idx]),
+        })),
         hasNext: nextProducts.length > 0,
     });
 };
-
 
 const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data
@@ -122,7 +114,6 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
         products,
     });
 };
-
 
 const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data
@@ -204,8 +195,5 @@ const productController = {
     getPharmacyProducts,
     getProductPharmacy,
 };
-
-
-
 
 export default productController;

@@ -5,6 +5,7 @@ import { IPharmacyProductSchema } from './schema-interfaces';
 const pharmacyProductSchema = new Schema<IPharmacyProductSchema>(
     {
         product: {
+            //Type IProductSchema
             type: Schema.Types.ObjectId,
             required: true,
             ref: 'Product',

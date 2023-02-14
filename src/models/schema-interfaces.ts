@@ -49,8 +49,8 @@ export interface IPharmacyReviewSchema {
 }
 
 export interface IPharmacyProductSchema {
-    //! this ID refers to a product (IProductSchema)
-    product: Schema.Types.ObjectId;
+    //! IProductSchema object not id
+    product: IProductSchema;
     //! this ID refers to a pharmacy (IPharmacySchema)
     pharmacy: Schema.Types.ObjectId;
     amount: number;

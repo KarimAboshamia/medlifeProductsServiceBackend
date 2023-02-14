@@ -36,7 +36,6 @@ export const uploadProductImages = async (productImages: Express.Multer.File[]):
 };
 
 export const generateProductImagesURL = async (images: string[][]): Promise<string[][]> => {
-    console.log(images);
     try {
         const response = await axios.post(
             `${gatewayServiceURL}/api/image/images/generate`,

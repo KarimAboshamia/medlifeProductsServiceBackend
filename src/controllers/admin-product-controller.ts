@@ -193,7 +193,7 @@ const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
     product = await product.save({ session });
 
     try {
-        await deleteProductImages(product.images);
+        await deleteProductImages([image]);
     } catch (error) {
         await session.abortTransaction();
         return next(getAxiosError(error));

@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import productController from '../controllers/admin-product-controller';
-import { imageUploader } from '../middleware/image-uploader-middleware';
 import { validationResultChecker } from '../middleware/validation-result-middleware';
 import {
     addingProductImagesValidator,
@@ -14,7 +13,6 @@ const adminProductRouter = Router();
 
 adminProductRouter.post(
     '/products/create',
-    imageUploader.any(),
     creatingProductValidator,
     validationResultChecker,
     productController.postProduct
@@ -31,7 +29,6 @@ adminProductRouter.patch(
 
 adminProductRouter.patch(
     '/products/images/add',
-    imageUploader.any(),
     addingProductImagesValidator,
     validationResultChecker,
     productController.addImages

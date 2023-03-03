@@ -8,34 +8,10 @@ const gatewayServiceUsername = process.env.GATEWAY_SERVICE_USERNAME;
 const gatewayServicePassword = process.env.GATEWAY_SERVICE_PASSWORD;
 const gatewayServiceToken = getServiceToken(gatewayServiceUsername, gatewayServicePassword);
 
-export const uploadProductImages = async (productImages: Express.Multer.File[]): Promise<string[]> => {
-    const uploadedImages = [];
-
-    try {
-        for (let i = 0; i < productImages.length; i++) {
-            const body = new FormData();
-
-            body.append('file', productImages[i].buffer, {
-                filename: productImages[i].originalname,
-                contentType: productImages[i].mimetype,
-            });
-
-            const response = await axios.post(`${gatewayServiceURL}/api/image/images/create`, body, {
-                headers: {
-                    Authorization: gatewayServiceToken,
-                },
-            });
-
-            uploadedImages.push(response.data.name);
-        }
-    } catch (error) {
-        throw error;
-    }
-
-    return uploadedImages;
-};
-
 export const generateProductImagesURL = async (images: string[][]): Promise<string[][]> => {
+    //!-------------------------
+    //! REPLACE IT WITH RabbitMQ
+    //!-------------------------
     try {
         const response = await axios.post(
             `${gatewayServiceURL}/api/image/images/generate`,
@@ -56,6 +32,9 @@ export const generateProductImagesURL = async (images: string[][]): Promise<stri
 };
 
 export const deleteProductImages = async (imageNames: string[]) => {
+    //!-------------------------
+    //! REPLACE IT WITH RabbitMQ
+    //!-------------------------
     try {
         await axios.delete(`${gatewayServiceURL}/api/image/images/delete`, {
             data: { imageName: imageNames },

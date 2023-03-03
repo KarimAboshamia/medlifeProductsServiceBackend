@@ -4,24 +4,14 @@ import Product from '../models/admin-product-model';
 import { getAxiosError, getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { startSession } from 'mongoose';
-import ResponseError from '../models/response-error';
 import {
     deleteProductImages,
     generateProductImagesURL,
     mapProductImages,
-    uploadProductImages,
 } from '../utilities/product-images-utility';
 
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     const { barcode } = req.body;
-
-    let productImages = (req.files as Express.Multer.File[]).filter((file) =>
-        file.fieldname.match(/^productImages/)
-    );
-
-    if (productImages.length <= 0) {
-        return next(new ResponseError('product images are required!', 422));
-    }
 
     let product = await Product.findOne({ barcode }).exec();
 
@@ -29,20 +19,12 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         return next(getError(ResponseMsgAndCode.ERROR_EXIST_PRODUCT));
     }
 
-    let uploadedImages = [];
-
-    try {
-        uploadedImages = await uploadProductImages(productImages);
-    } catch (error) {
-        return next(getAxiosError(error));
-    }
-
     product = await new Product({
         name: req.body.name,
         barcode,
         type: req.body.type,
         description: req.body.description,
-        images: uploadedImages,
+        images: req.body.images,
         categories: req.body.categories,
         indication: req.body.indication,
         sideEffects: req.body.sideEffects,
@@ -133,15 +115,7 @@ const updateProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
 };
 
 const addImages = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    const { barcode } = req.body;
-
-    let productImages = (req.files as Express.Multer.File[]).filter((file) =>
-        file.fieldname.match(/^productImages/)
-    );
-
-    if (productImages.length <= 0) {
-        return next(new ResponseError('product images are required!', 422));
-    }
+    const { barcode, images } = req.body;
 
     let product = await Product.findOne({ barcode }).exec();
 
@@ -149,15 +123,7 @@ const addImages = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) =
         return next(getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE));
     }
 
-    let uploadedImages = [];
-
-    try {
-        uploadedImages = await uploadProductImages(productImages);
-    } catch (error) {
-        return next(getAxiosError(error));
-    }
-
-    product.images = product.images.concat(uploadedImages);
+    product.images = product.images.concat(images);
     product = await product.save();
 
     let imagesURL = [];

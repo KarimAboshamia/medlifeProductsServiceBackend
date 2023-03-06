@@ -8,11 +8,6 @@ import { getAxiosError, getError, returnResponse } from '../utilities/response-u
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { getServiceToken } from '../utilities/service-utility';
 
-const gatewayServiceURL = process.env.GATEWAY_SERVICE_URL;
-const gatewayServiceUsername = process.env.GATEWAY_SERVICE_USERNAME;
-const gatewayServicePassword = process.env.GATEWAY_SERVICE_PASSWORD;
-const gatewayServiceToken = getServiceToken(gatewayServiceUsername, gatewayServicePassword);
-
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data from request body
     const { pharmacyId, productId, amount, price, offer } = req.body;

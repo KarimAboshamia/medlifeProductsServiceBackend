@@ -24,7 +24,7 @@ export async function createChannelAndQueue(): Promise<{ channel: amqp.Channel; 
     }
 }
 
-export async function sendMessage(channel: amqp.Channel, queuename : string, queue: Queue, message: string[][]): Promise<string> {
+export async function sendMessage(channel: amqp.Channel, queuename : string, queue: Queue, message: any): Promise<string> {
     const correlationId = uuidv4();
     try {
         const result = await channel.sendToQueue(queuename, Buffer.from(JSON.stringify(message)), {

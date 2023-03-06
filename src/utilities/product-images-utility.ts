@@ -15,13 +15,10 @@ const mySingletonInstance = MySingleton.getInstance();
 const channel = mySingletonInstance.channel;
 const queue = mySingletonInstance.queue;
 const generateURLsQueue = process.env.GENERATE_URLS_QUEUE;
+const deleteImageQueue = process.env.DELETE_IMAGE_QUEUE;
 
 export const generateProductImagesURL = async (images: string[][]): Promise<string[][]> => {
-    //!-------------------------
-    //! REPLACE IT WITH RabbitMQ
-    //!-------------------------
-
-    return new Promise (async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         const correlationId = await sendMessage(
             mySingletonInstance.channel,
             generateURLsQueue,
@@ -30,31 +27,44 @@ export const generateProductImagesURL = async (images: string[][]): Promise<stri
         );
 
         try {
-            const msg = await consume(mySingletonInstance.channel, mySingletonInstance.queue.queue, correlationId);
+            const msg = await consume(
+                mySingletonInstance.channel,
+                mySingletonInstance.queue.queue,
+                correlationId
+            );
             console.log('Done');
 
             resolve(JSON.parse((msg as any)?.content?.toString() || '')?.res || []);
             //return response.data.responseURLs;
         } catch (error) {
-            reject (error);
+            reject(error);
         }
     });
 };
 
 export const deleteProductImages = async (imageNames: string[]) => {
-    //!-------------------------
-    //! REPLACE IT WITH RabbitMQ
-    //!-------------------------
-    try {
-        await axios.delete(`${gatewayServiceURL}/api/image/images/delete`, {
-            data: { imageName: imageNames },
-            headers: {
-                Authorization: gatewayServiceToken,
-            },
-        });
-    } catch (error) {
-        throw error;
-    }
+    return new Promise(async (resolve, reject) => {
+        const correlationId = await sendMessage(
+            mySingletonInstance.channel,
+            deleteImageQueue,
+            mySingletonInstance.queue,
+            { imageNames: imageNames }
+        );
+
+        try {
+            const msg = await consume(
+                mySingletonInstance.channel,
+                mySingletonInstance.queue.queue,
+                correlationId
+            );
+            console.log('Done');
+
+            resolve('Done');
+            //return response.data.responseURLs;
+        } catch (error) {
+            reject(error);
+        }
+    });
 };
 
 export const mapProductImages = (imagesID: string[], imagesURL: string[]) => {

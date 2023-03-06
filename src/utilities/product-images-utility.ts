@@ -6,11 +6,6 @@ import { getServiceToken } from './service-utility';
 import MySingleton from './singleton-comm-utility';
 import { sendMessage, consume } from './message-broker-utility';
 
-const gatewayServiceURL = process.env.GATEWAY_SERVICE_URL;
-const gatewayServiceUsername = process.env.GATEWAY_SERVICE_USERNAME;
-const gatewayServicePassword = process.env.GATEWAY_SERVICE_PASSWORD;
-const gatewayServiceToken = getServiceToken(gatewayServiceUsername, gatewayServicePassword);
-
 const mySingletonInstance = MySingleton.getInstance();
 const channel = mySingletonInstance.channel;
 const queue = mySingletonInstance.queue;

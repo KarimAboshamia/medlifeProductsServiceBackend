@@ -40,7 +40,7 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
     try {
         imagesURL = (await generateProductImagesURL([product.images]))[0];
     } catch (error) {
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_CREATE_PRODUCT, {
@@ -65,7 +65,7 @@ const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
         await deleteProductImages(product.images);
     } catch (error) {
         await session.abortTransaction();
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     await session.commitTransaction();
@@ -106,7 +106,7 @@ const updateProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
     try {
         imagesURL = (await generateProductImagesURL([product.images]))[0];
     } catch (error) {
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
@@ -131,7 +131,7 @@ const addImages = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) =
     try {
         imagesURL = (await generateProductImagesURL([product.images]))[0];
     } catch (error) {
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
@@ -162,7 +162,7 @@ const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         await deleteProductImages([image]);
     } catch (error) {
         await session.abortTransaction();
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     let imagesURL = [];
@@ -171,7 +171,7 @@ const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         imagesURL = (await generateProductImagesURL([product.images]))[0];
     } catch (error) {
         await session.abortTransaction();
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     await session.commitTransaction();

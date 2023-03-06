@@ -53,7 +53,7 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
     try {
         imagesURLs = await generateProductImagesURL(products.map((product) => product.images));
     } catch (error) {
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     //! [6] Return response
@@ -97,7 +97,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
     try {
         imagesURLs = await generateProductImagesURL(products.map((product) => product.product.images));
     } catch (error) {
-        return next(getAxiosError(error));
+        return next(error);
     }
 
     //! [5] Return response

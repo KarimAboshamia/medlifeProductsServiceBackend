@@ -1,8 +1,8 @@
 import amqp from 'amqplib';
 import { v4 as uuidv4 } from 'uuid';
 
-//npm install @types/uuid
-//npm install uuid
+
+const brokerURL = process.env.BROKER_URL;
 
 interface Queue {
     queue: string;
@@ -12,7 +12,7 @@ export async function createChannelAndQueue(): Promise<{ channel: amqp.Channel; 
     try {
         console.log("Here");
         const connection = await amqp.connect(
-            'amqps://hxhbuwqc:pNhM1LZazWWxYJ9N_HPpHD0TRTNR-2-H@rat.rmq2.cloudamqp.com/hxhbuwqc'
+            brokerURL
         );
         console.log("Here2");
         const channel = await connection.createChannel();
@@ -58,21 +58,3 @@ export function consume(channel: any, queue: any, correlationId: any) {
         );
     });
 }
-
-// export const sendMsg = async () => {
-//     console.log("Here");
-//     const queueName = 'my_queue';
-//     const { channel, queue } = await createChannelAndQueue();
-//     const message = { name: 'John' };
-//     const correlationId = await sendMessage(channel, queueName, queue, message);
-//     console.log(correlationId);
-//     try {
-//         const msg = await consume(channel, queue.queue, correlationId);
-//         console.log("Done");
-//         console.log((msg as any) ? (msg as any).content.toString()  : 'No response');
-//     } catch (error) {
-//         console.error(error);
-//     } finally {
-//         await channel.close();
-//     }
-// };

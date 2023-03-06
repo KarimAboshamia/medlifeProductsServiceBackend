@@ -6,9 +6,14 @@ import bodyParser from 'body-parser';
 import ResponseError from './models/response-error';
 import apiRouter from './routes/api-route';
 
+import { initSender } from './middleware/initialize-broker';
+
+
 // --------------------------------------------------------
 
 const app = express();
+
+initSender();
 
 //? parsing coming request body
 app.use(bodyParser.urlencoded({ extended: false }));

@@ -3,32 +3,42 @@ import FormData from 'form-data';
 
 import { getServiceToken } from './service-utility';
 
+import MySingleton from './singleton-comm-utility';
+import { sendMessage, consume } from './message-broker-utility';
+
 const gatewayServiceURL = process.env.GATEWAY_SERVICE_URL;
 const gatewayServiceUsername = process.env.GATEWAY_SERVICE_USERNAME;
 const gatewayServicePassword = process.env.GATEWAY_SERVICE_PASSWORD;
 const gatewayServiceToken = getServiceToken(gatewayServiceUsername, gatewayServicePassword);
 
+const mySingletonInstance = MySingleton.getInstance();
+const channel = mySingletonInstance.channel;
+const queue = mySingletonInstance.queue;
+const generateURLsQueue = process.env.GENERATE_URLS_QUEUE;
+
 export const generateProductImagesURL = async (images: string[][]): Promise<string[][]> => {
     //!-------------------------
     //! REPLACE IT WITH RabbitMQ
     //!-------------------------
-    try {
-        const response = await axios.post(
-            `${gatewayServiceURL}/api/image/images/generate`,
-            {
-                images,
-            },
-            {
-                headers: {
-                    Authorization: gatewayServiceToken,
-                },
-            }
+
+    return new Promise (async(resolve, reject) => {
+        const correlationId = await sendMessage(
+            mySingletonInstance.channel,
+            generateURLsQueue,
+            mySingletonInstance.queue,
+            images
         );
 
-        return response.data.responseURLs;
-    } catch (error) {
-        throw error;
-    }
+        try {
+            const msg = await consume(mySingletonInstance.channel, mySingletonInstance.queue.queue, correlationId);
+            console.log('Done');
+
+            resolve(JSON.parse((msg as any)?.content?.toString() || '')?.res || []);
+            //return response.data.responseURLs;
+        } catch (error) {
+            reject (error);
+        }
+    });
 };
 
 export const deleteProductImages = async (imageNames: string[]) => {

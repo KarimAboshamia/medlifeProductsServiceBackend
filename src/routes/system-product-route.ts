@@ -7,8 +7,8 @@ const systemProductRouter = Router();
 
 systemProductRouter.get(
     '/products',
-    getProductValidator,
-    validationResultChecker,
+    // getProductValidator,
+    // validationResultChecker,
     productController.getProducts
 );
 
@@ -21,8 +21,8 @@ systemProductRouter.get(
 // Get All pharmacies that have a specific product 
 systemProductRouter.get(
     '/products/product',
-    getProductPharmacyValidator,
-    validationResultChecker,
+    // getProductPharmacyValidator,
+    // validationResultChecker,
     productController.getProductPharmacy
 );
 

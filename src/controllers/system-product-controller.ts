@@ -90,27 +90,25 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             .exec()
     ).filter((prod) => prod.product);
 
+
     //! [4] Add images to products
-    let productsImages = [];
-    for (let pr of products) {
-        productsImages.push(pr.product[0].image);
-    }
+    let imagesURLs = [];
 
     try {
-        const responseURLs = await axios.post(`${imageServiceURL}/images/generate`, {
-            images: productsImages,
-        });
-
-        for (let pr of products) {
-            pr.product[0].images = responseURLs.data.responseURLs[products.indexOf(pr)];
-        }
-    } catch (err) {
-        return next(getAxiosError(err));
+        imagesURLs = await generateProductImagesURL(products.map((product) => product.product.images));
+    } catch (error) {
+        return next(getAxiosError(error));
     }
 
     //! [5] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
-        products,
+        products: products.map((product, idx) => ({
+            ...product.toObject(),
+            product: {
+                ...product.toObject().product,
+                images: mapProductImages(product.product.images, imagesURLs[idx]),
+            }
+        })),
     });
 };
 

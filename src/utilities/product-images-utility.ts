@@ -1,14 +1,7 @@
-import axios from 'axios';
-import FormData from 'form-data';
-
-import { getServiceToken } from './service-utility';
-
 import MySingleton from './singleton-comm-utility';
 import { sendMessage, consume } from './message-broker-utility';
 
 const mySingletonInstance = MySingleton.getInstance();
-const channel = mySingletonInstance.channel;
-const queue = mySingletonInstance.queue;
 const generateURLsQueue = process.env.GENERATE_URLS_QUEUE;
 const deleteImageQueue = process.env.DELETE_IMAGE_QUEUE;
 
@@ -27,7 +20,6 @@ export const generateProductImagesURL = async (images: string[][]): Promise<stri
                 mySingletonInstance.queue.queue,
                 correlationId
             );
-            console.log('Done');
 
             resolve(JSON.parse((msg as any)?.content?.toString() || '')?.res || []);
             //return response.data.responseURLs;
@@ -52,10 +44,8 @@ export const deleteProductImages = async (imageNames: string[]) => {
                 mySingletonInstance.queue.queue,
                 correlationId
             );
-            console.log('Done');
 
             resolve('Done');
-            //return response.data.responseURLs;
         } catch (error) {
             reject(error);
         }

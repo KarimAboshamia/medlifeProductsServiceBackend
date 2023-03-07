@@ -9,6 +9,6 @@ export const initSender = async () => {
         mySingletonInstance.channel = channel;
         mySingletonInstance.queue = queue;
     } catch (e) {
-        console.log(e);
+        throw e;
     }
 };

@@ -1,4 +1,3 @@
-import { AxiosResponse } from 'axios';
 import { Response } from 'express';
 
 import ResponseError from '../models/response-error';
@@ -17,27 +16,4 @@ export const returnResponse = (expResponse: Response, responseMsg: ResponseMsgAn
         ...responseBody,
         message: msg,
     });
-};
-
-export const getAxiosResponse = (
-    expResponse: Response,
-    axiosResponse: AxiosResponse,
-    extraData = {},
-    ignoreResponseData = false
-) => {
-    return expResponse.status(axiosResponse.status).json({
-        ...(!ignoreResponseData && axiosResponse.data),
-        ...extraData,
-    });
-};
-
-export const getAxiosError = (error) => {
-    const msg =
-        error?.response?.data?.message || (typeof error?.response?.data === 'string' && error.response.data);
-
-    const err = !!msg
-        ? new ResponseError(msg, error.response.status, error?.response?.data?.extraData)
-        : error;
-
-    return err;
 };

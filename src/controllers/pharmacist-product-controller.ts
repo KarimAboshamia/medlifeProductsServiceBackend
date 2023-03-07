@@ -1,12 +1,9 @@
 import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNextFunc } from 'express';
-import axios from 'axios';
-import { startSession } from 'mongoose';
 
 import PharmacyProduct from '../models/pharmacy-product-model';
 import Product from '../models/admin-product-model';
-import { getAxiosError, getError, returnResponse } from '../utilities/response-utility';
+import { getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
-import { getServiceToken } from '../utilities/service-utility';
 
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data from request body

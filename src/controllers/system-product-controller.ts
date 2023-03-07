@@ -1,15 +1,11 @@
 import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNextFunc } from 'express';
-import FormData from 'form-data';
-import axios from 'axios';
 
 import Product from '../models/admin-product-model';
 import PharmacyProduct from '../models/pharmacy-product-model';
-import { returnResponse, getAxiosError } from '../utilities/response-utility';
+import { returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { Types } from 'mongoose';
 import { generateProductImagesURL, mapProductImages } from '../utilities/product-images-utility';
-
-const imageServiceURL = process.env.IMAGE_SERVICE_URL;
 
 const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract query params
@@ -90,7 +86,6 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             .exec()
     ).filter((prod) => prod.product);
 
-
     //! [4] Add images to products
     let imagesURLs = [];
 
@@ -107,7 +102,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             product: {
                 ...product.toObject().product,
                 images: mapProductImages(product.product.images, imagesURLs[idx]),
-            }
+            },
         })),
     });
 };
@@ -173,7 +168,6 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     for (let pr of products) {
         pr.product.images = imagesURLs[products.indexOf(pr)];
     }
-
 
     //! [6] Return response
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {

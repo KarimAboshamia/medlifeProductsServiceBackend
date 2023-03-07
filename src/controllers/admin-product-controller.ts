@@ -1,7 +1,7 @@
 import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNextFunc } from 'express';
 
 import Product from '../models/admin-product-model';
-import { getAxiosError, getError, returnResponse } from '../utilities/response-utility';
+import { getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { startSession } from 'mongoose';
 import {

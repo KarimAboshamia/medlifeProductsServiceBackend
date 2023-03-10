@@ -7,7 +7,7 @@ const deleteImageQueue = process.env.DELETE_IMAGE_QUEUE;
 
 export const generateProductImagesURL = async (images: string[][]): Promise<string[][]> => {
     return new Promise(async (resolve, reject) => {
-        const correlationId = await sendMessage(
+        const { correlationId, queue } = await sendMessage(
             mySingletonInstance.channel,
             generateURLsQueue,
             mySingletonInstance.queue,
@@ -17,7 +17,7 @@ export const generateProductImagesURL = async (images: string[][]): Promise<stri
         try {
             const msg = await consume(
                 mySingletonInstance.channel,
-                mySingletonInstance.queue.queue,
+                queue.queue,
                 correlationId
             );
 
@@ -31,7 +31,7 @@ export const generateProductImagesURL = async (images: string[][]): Promise<stri
 
 export const deleteProductImages = async (imageNames: string[]) => {
     return new Promise(async (resolve, reject) => {
-        const correlationId = await sendMessage(
+        const { correlationId, queue } = await sendMessage(
             mySingletonInstance.channel,
             deleteImageQueue,
             mySingletonInstance.queue,
@@ -41,7 +41,7 @@ export const deleteProductImages = async (imageNames: string[]) => {
         try {
             const msg = await consume(
                 mySingletonInstance.channel,
-                mySingletonInstance.queue.queue,
+                queue.queue,
                 correlationId
             );
 

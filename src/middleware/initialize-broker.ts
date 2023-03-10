@@ -4,10 +4,7 @@ import MySingleton from "../utilities/singleton-comm-utility";
 export const initSender = async () => {
     try {
         const mySingletonInstance = MySingleton.getInstance();
-        const { channel, queue } = await createChannelAndQueue();
-
-        mySingletonInstance.channel = channel;
-        mySingletonInstance.queue = queue;
+        await createChannelAndQueue();
     } catch (e) {
         throw e;
     }

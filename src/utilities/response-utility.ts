@@ -17,3 +17,13 @@ export const returnResponse = (expResponse: Response, responseMsg: ResponseMsgAn
         message: msg,
     });
 };
+
+export const returnBrokerResponse = (responseMsg: ResponseMsgAndCode, responseBody: any = {}) => {
+    const [msg, code] = responseMsg.split('##').map((part) => part.trim());
+    
+    return {
+        ...responseBody,
+        message: msg,
+        status: code,
+    };
+};

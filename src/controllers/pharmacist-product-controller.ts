@@ -2,7 +2,7 @@ import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNext
 
 import PharmacyProduct from '../models/pharmacy-product-model';
 import Product from '../models/admin-product-model';
-import { getError, returnResponse } from '../utilities/response-utility';
+import { getError, returnBrokerResponse, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
@@ -81,10 +81,17 @@ const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
     });
 };
 
+const deletePharmacyProducts = async (pharmacyId: string) => {
+    await PharmacyProduct.deleteMany({ pharmacy: pharmacyId }).exec();
+
+    return returnBrokerResponse(ResponseMsgAndCode.SUCCESS_PHARMACY_PRODUCTS_DELETION);
+};
+
 const productController = {
     postProduct,
     modifyProduct,
     deleteProduct,
+    deletePharmacyProducts,
 };
 
 export default productController;

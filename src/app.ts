@@ -7,6 +7,7 @@ import ResponseError from './models/response-error';
 import apiRouter from './routes/api-route';
 
 import { initSender } from './middleware/initialize-broker';
+import { callReceiver } from './middleware/receiver-broker-middleware';
 
 
 // --------------------------------------------------------
@@ -14,6 +15,7 @@ import { initSender } from './middleware/initialize-broker';
 const app = express();
 
 initSender();
+callReceiver();
 
 //? parsing coming request body
 app.use(bodyParser.urlencoded({ extended: false }));

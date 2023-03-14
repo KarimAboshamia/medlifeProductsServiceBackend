@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import productController from '../controllers/admin-product-controller';
+import adminProductController from '../controllers/admin-product-controller';
 import { validationResultChecker } from '../middleware/validation-result-middleware';
 import {
     addingProductImagesValidator,
@@ -15,30 +15,30 @@ adminProductRouter.post(
     '/products/create',
     creatingProductValidator,
     validationResultChecker,
-    productController.postProduct
+    adminProductController.postProduct
 );
 
-adminProductRouter.delete('/products/delete/:barcode', productController.deleteProduct);
+adminProductRouter.delete('/products/delete/:barcode', adminProductController.deleteProduct);
 
 adminProductRouter.patch(
     '/products/update/:barcode',
     updatingProductValidator,
     validationResultChecker,
-    productController.updateProduct
+    adminProductController.updateProduct
 );
 
 adminProductRouter.patch(
     '/products/images/add',
     addingProductImagesValidator,
     validationResultChecker,
-    productController.addImages
+    adminProductController.addImages
 );
 
 adminProductRouter.delete(
     '/products/images/delete',
     deletingProductImageValidator,
     validationResultChecker,
-    productController.deleteImage
+    adminProductController.deleteImage
 );
 
 export default adminProductRouter;

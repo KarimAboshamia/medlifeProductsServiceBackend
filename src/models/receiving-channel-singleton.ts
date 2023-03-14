@@ -1,14 +1,15 @@
 import amqp from 'amqplib';
 
-class ChannelMySingleton {
+class ReceivingChannelSingleton {
     static instance = null;
     private _channel: amqp.Channel | null;
 
     static getInstance() {
-        if (ChannelMySingleton.instance === null) {
-            ChannelMySingleton.instance = new ChannelMySingleton();
+        if (ReceivingChannelSingleton.instance === null) {
+            ReceivingChannelSingleton.instance = new ReceivingChannelSingleton();
         }
-        return ChannelMySingleton.instance;
+
+        return ReceivingChannelSingleton.instance;
     }
 
     private constructor() {
@@ -26,4 +27,4 @@ class ChannelMySingleton {
     }
 }
 
-export default ChannelMySingleton;
+export default ReceivingChannelSingleton;

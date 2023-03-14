@@ -3,16 +3,18 @@ import amqp from 'amqplib';
 interface Queue {
     queue: string;
 }
-class MySingleton {
+
+class SendingChannelSingleton {
     static instance = null;
     private _channel: amqp.Channel | null;
     private _queue: Queue | null;
 
     static getInstance() {
-        if (MySingleton.instance === null) {
-            MySingleton.instance = new MySingleton();
+        if (SendingChannelSingleton.instance === null) {
+            SendingChannelSingleton.instance = new SendingChannelSingleton();
         }
-        return MySingleton.instance;
+
+        return SendingChannelSingleton.instance;
     }
 
     private constructor() {
@@ -39,4 +41,4 @@ class MySingleton {
     }
 }
 
-export default MySingleton;
+export default SendingChannelSingleton;

@@ -11,8 +11,6 @@ export const pullMessageFromQueue = async (
     channel: amqp.Channel,
     controller: (data: any) => Promise<any>
 ) => {
-    console.log(queueName);
-
     try {
         channel.consume(
             queueName,
@@ -21,8 +19,6 @@ export const pullMessageFromQueue = async (
 
                 let data = JSON.parse(String(msg!.content));
 
-                console.log(data);
-
                 let res: any;
 
                 try {
@@ -30,8 +26,6 @@ export const pullMessageFromQueue = async (
                 } catch (error) {
                     res = error;
                 }
-
-                console.log(res);
 
                 channel.sendToQueue(msg?.properties.replyTo!, Buffer.from(JSON.stringify(res)), {
                     correlationId: msg?.properties.correlationId,

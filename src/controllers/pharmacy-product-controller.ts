@@ -4,6 +4,9 @@ import PharmacyProduct from '../models/pharmacy-product-model';
 import Product from '../models/admin-product-model';
 import { getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
+import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
+
+const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
 
 const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data from request body
@@ -12,6 +15,7 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
     try {
         //! [2] Search for the product
         let product = await Product.findById(productId).exec();
+
         if (!product) {
             throw getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE);
         }
@@ -38,7 +42,13 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
 
         //! [6] Return the response
         returnResponse(res, ResponseMsgAndCode.SUCCESS_PRODUCT_CREATED, {
-            product: { ...pharmacyProduct.toObject() },
+            product: {
+                ...pharmacyProduct.toObject(),
+                product: {
+                    ...product.toObject(),
+                    images: (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])).responseURLs[0],
+                },
+            },
         });
     } catch (error) {
         return next(error);
@@ -51,19 +61,29 @@ const modifyProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
 
     try {
         //! [2] Check that product exists
-        const product = await PharmacyProduct.findOne({ _id: productId, pharmacy: pharmacyId }).exec();
+        const product = await PharmacyProduct.findOne({ _id: productId, pharmacy: pharmacyId })
+            .populate('product')
+            .exec();
+
         if (!product) {
             throw getError(ResponseMsgAndCode.ERROR_NO_PRODUCTS_FOUND);
         }
 
         product.amount = amount;
         product.price = price;
-        product.offer = offer;
+        product.offer = offer || product.offer;
         await product.save();
 
         //! [3] Return the response
         returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
-            product: { ...product.toObject() },
+            product: {
+                ...product.toObject(),
+                product: {
+                    ...product.toObject().product,
+                    images: (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.product.images]))
+                        .responseURLs[0],
+                },
+            },
         });
     } catch (error) {
         return next(error);

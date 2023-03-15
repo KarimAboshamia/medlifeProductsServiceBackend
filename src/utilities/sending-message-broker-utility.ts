@@ -85,8 +85,6 @@ export function consume(channel: any, queue: any, correlationId: any) {
 }
 
 export const pushMessageToQueue = async (queueName: string, data: any): Promise<any> => {
-    console.log(queueName, data);
-
     return new Promise(async (resolve, reject) => {
         try {
             const sendingChannel = SendingChannelSingleton.getInstance();
@@ -97,9 +95,7 @@ export const pushMessageToQueue = async (queueName: string, data: any): Promise<
 
             const responseBody = JSON.parse((msg as any)?.content?.toString() || '') || {};
 
-            console.log(responseBody);
-
-            const statusCode = +responseBody?.status;
+            const statusCode = +responseBody?.statusCode;
 
             if (statusCode && statusCode >= 400 && statusCode < 600) {
                 throw new ResponseError(responseBody.message, statusCode, responseBody.extraData);

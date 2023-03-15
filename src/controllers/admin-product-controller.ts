@@ -50,6 +50,7 @@ const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
     let { barcode } = req.params;
 
     const session = await startSession();
+    session.startTransaction();
 
     try {
         let product = await Product.findOne({ barcode: barcode }).exec();
@@ -58,7 +59,6 @@ const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
             throw getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_BARCODE);
         }
 
-        session.startTransaction();
         await product.remove({ session });
 
         await pushMessageToQueue(DELETE_IMAGE_QUEUE, product.images);
@@ -138,6 +138,7 @@ const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
     const { barcode, image } = req.body;
 
     const session = await startSession();
+    session.startTransaction();
 
     try {
         let product = await Product.findOne({ barcode }).exec();
@@ -149,8 +150,6 @@ const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         if (product.images.length == 1) {
             throw getError(ResponseMsgAndCode.ERROR_NO_ENOUGH_IMAGES_TO_DELETE);
         }
-
-        session.startTransaction();
 
         product.images = product.images.filter((img) => img !== image);
         product = await product.save({ session });

@@ -12,11 +12,12 @@ const productIdValidator = body('productId')
     .isMongoId()
     .withMessage('Product ID is not valid');
 
-const amountValidator = body('amount')
-    .exists({ checkFalsy: true })
-    .withMessage('Amount is required')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive integer');
+const amountValidator = (minAllowedAmount) =>
+    body('amount')
+        .exists()
+        .withMessage('Amount is required')
+        .isInt({ min: minAllowedAmount })
+        .withMessage('Amount must be a positive integer');
 
 const priceValidator = body('price')
     .exists({ checkFalsy: true })
@@ -30,18 +31,29 @@ const offerValidator = body('offer')
     .withMessage('Offer must be a positive float between 0.01 and 1');
 
 //make two optional fields, only one of them required
-const nameValidator = body('name').optional({ checkFalsy: true }).isString().withMessage('Name must be a string');
+const nameValidator = body('name')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage('Name must be a string');
 
-const barcodeValidator = body('barcode').optional({ checkFalsy: true }).isString().withMessage('Barcode must be a string');
+const barcodeValidator = body('barcode')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage('Barcode must be a string');
 
 export const productValidator = [
     pharmacyIdValidator,
     productIdValidator,
-    amountValidator,
+    amountValidator(1),
     priceValidator,
     offerValidator,
 ];
 
-export const modifyProductValidator = [productIdValidator, amountValidator, priceValidator, offerValidator];
+export const modifyProductValidator = [
+    productIdValidator,
+    amountValidator(0),
+    priceValidator,
+    offerValidator,
+];
 
 export const deleteProductValidator = [productIdValidator];

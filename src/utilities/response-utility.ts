@@ -24,6 +24,6 @@ export const returnBrokerResponse = (responseMsg: ResponseMsgAndCode, responseBo
     return {
         ...responseBody,
         message: msg,
-        status: code,
+        statusCode: code,
     };
 };

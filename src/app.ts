@@ -6,9 +6,8 @@ import bodyParser from 'body-parser';
 import ResponseError from './models/response-error';
 import apiRouter from './routes/api-route';
 
-import { initSender } from './middleware/initialize-broker';
-import { callReceiver } from './middleware/receiver-broker-middleware';
-
+import { initSender } from './utilities/sending-message-broker-utility';
+import { callReceiver } from './utilities/receiving-message-broker-utility';
 
 // --------------------------------------------------------
 

@@ -15,4 +15,5 @@ export enum ResponseMsgAndCode {
     SUCCESS_UPDATE_PRODUCT = 'Product Updated Successfully ## 200',
     SUCCESS_PRODUCT_CREATED = 'product created successfully! ## 200',
     SUCCESS_PHARMACY_PRODUCTS_DELETION = 'pharmacy products deleted successfully! ## 200',
+    SUCCESS_PHARMACY_PRODUCTS_FETCHED = 'products fetched successfully! ## 200',
 }

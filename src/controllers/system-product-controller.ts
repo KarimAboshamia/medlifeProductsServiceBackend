@@ -2,6 +2,7 @@ import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNext
 
 import Product from '../models/admin-product-model';
 import PharmacyProduct from '../models/pharmacy-product-model';
+import Categories from '../models/category-model';
 import { returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { Types } from 'mongoose';
@@ -187,10 +188,20 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     }
 };
 
+
+const getCategory = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
+    const categories = await Categories.find({}).exec();
+    return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_CATEGORIES, {
+        ...categories
+    });
+}
+
+
 const systemProductController = {
     getProducts,
     getPharmacyProducts,
     getProductPharmacy,
+    getCategory
 };
 
 export default systemProductController;

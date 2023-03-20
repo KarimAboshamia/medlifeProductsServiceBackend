@@ -38,6 +38,10 @@ export interface IProductSchema {
     storage?: string[];
 }
 
+export interface ICategorySchema {
+    name: string;
+}
+
 // -------------------------------------------------------------
 export interface IPharmacyReviewSchema {
     rate: number;

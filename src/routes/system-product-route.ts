@@ -26,4 +26,9 @@ systemProductRouter.get(
     productController.getProductPharmacy
 );
 
+systemProductRouter.get(
+    '/categories',
+    productController.getCategory,
+);
+
 export default systemProductRouter;

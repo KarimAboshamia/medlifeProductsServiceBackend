@@ -9,6 +9,7 @@ import { mapProductImages } from '../utilities/product-images-utility';
 import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
 
 const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
+const PHARMACY_DETAILS_QUEUE = process.env.GET_PHARMACY_DETAILS_QUEUE;
 
 const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract query params
@@ -99,6 +100,15 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             )
         ).responseURLs;
 
+        let pharmacyDetails = (
+            await pushMessageToQueue(
+                PHARMACY_DETAILS_QUEUE,
+                products.map((product) => product.pharmacy)
+
+            )
+        )
+        console.log(pharmacyDetails);
+
         //! [5] Return response
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
             products: products.map((product, idx) => ({
@@ -106,6 +116,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
                 product: {
                     ...product.toObject().product,
                     images: mapProductImages(product.product.images, imagesURLs[idx]),
+                    pharmacy: pharmacyDetails[idx],
                 },
             })),
         });

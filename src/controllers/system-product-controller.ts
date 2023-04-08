@@ -101,14 +101,10 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             )
         ).responseURLs;
 
-        let pharmacyDetails = (
-            await pushMessageToQueue(
-                PHARMACY_DETAILS_QUEUE,
-                products.map((product) => product.pharmacy)
-
-            )
-        )
-        console.log(pharmacyDetails);
+        let pharmacyDetails = await pushMessageToQueue(
+            PHARMACY_DETAILS_QUEUE,
+            products.map((product) => product.pharmacy)
+        );
 
         //! [5] Return response
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
@@ -199,20 +195,18 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     }
 };
 
-
 const getCategory = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     const categories = await Categories.find({}).exec();
     return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_CATEGORIES, {
-        ...categories
+        ...categories,
     });
-}
-
+};
 
 const systemProductController = {
     getProducts,
     getPharmacyProducts,
     getProductPharmacy,
-    getCategory
+    getCategory,
 };
 
 export default systemProductController;

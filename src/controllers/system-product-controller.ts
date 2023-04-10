@@ -2,6 +2,7 @@ import { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNext
 
 import Product from '../models/admin-product-model';
 import PharmacyProduct from '../models/pharmacy-product-model';
+import Categories from '../models/category-model';
 import { returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { Types } from 'mongoose';
@@ -9,6 +10,7 @@ import { mapProductImages } from '../utilities/product-images-utility';
 import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
 
 const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
+const PHARMACY_DETAILS_QUEUE = process.env.GET_PHARMACY_DETAILS_QUEUE;
 
 const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract query params
@@ -99,6 +101,11 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             )
         ).responseURLs;
 
+        let pharmacyDetails = await pushMessageToQueue(
+            PHARMACY_DETAILS_QUEUE,
+            products.map((product) => product.pharmacy)
+        );
+
         //! [5] Return response
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
             products: products.map((product, idx) => ({
@@ -106,6 +113,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
                 product: {
                     ...product.toObject().product,
                     images: mapProductImages(product.product.images, imagesURLs[idx]),
+                    pharmacy: pharmacyDetails[idx],
                 },
             })),
         });
@@ -187,10 +195,18 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
     }
 };
 
+const getCategory = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
+    const categories = await Categories.find({}).exec();
+    return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_CATEGORIES, {
+        ...categories,
+    });
+};
+
 const systemProductController = {
     getProducts,
     getPharmacyProducts,
     getProductPharmacy,
+    getCategory,
 };
 
 export default systemProductController;

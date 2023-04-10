@@ -5,6 +5,7 @@ import pharmacyProductBroker from '../brokers/pharmacy-product-broker';
 
 const BROKER_URL = process.env.BROKER_URL;
 const DEL_PHARMACY_PRODUCTS_QUEUE = process.env.DEL_PHARMACY_PRODUCTS_QUEUE;
+const GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE = process.env.GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE;
 
 export const pullMessageFromQueue = async (
     queueName: string,
@@ -82,6 +83,13 @@ export const callReceiver = async () => {
             DEL_PHARMACY_PRODUCTS_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.deletePharmacyProducts
+        );
+        
+        await createQueue(GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE, receivingChannel.channel);
+        pullMessageFromQueue(
+            GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE,
+            receivingChannel.channel,
+            pharmacyProductBroker.getPharmaciesProductsWithIds
         );
     } catch (e) {
         throw e;

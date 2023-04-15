@@ -6,6 +6,9 @@ import pharmacyProductBroker from '../brokers/pharmacy-product-broker';
 const BROKER_URL = process.env.BROKER_URL;
 const DEL_PHARMACY_PRODUCTS_QUEUE = process.env.DEL_PHARMACY_PRODUCTS_QUEUE;
 const GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE = process.env.GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE;
+const GET_PRODUCTS_PHARMACIES_QUEUE = process.env.GET_PRODUCTS_PHARMACIES_QUEUE;
+const REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE =
+    process.env.REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE;
 
 export const pullMessageFromQueue = async (
     queueName: string,
@@ -25,7 +28,11 @@ export const pullMessageFromQueue = async (
                 try {
                     res = await controller(data);
                 } catch (error) {
-                    res = error;
+                    res = {
+                        ...error,
+                        message: error.message,
+                        statusCode: error.statusCode || error.status || 500,
+                    };
                 }
 
                 channel.sendToQueue(msg?.properties.replyTo!, Buffer.from(JSON.stringify(res)), {
@@ -84,12 +91,26 @@ export const callReceiver = async () => {
             receivingChannel.channel,
             pharmacyProductBroker.deletePharmacyProducts
         );
-        
+
         await createQueue(GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE, receivingChannel.channel);
         pullMessageFromQueue(
             GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.getPharmaciesProductsWithIds
+        );
+
+        await createQueue(GET_PRODUCTS_PHARMACIES_QUEUE, receivingChannel.channel);
+        pullMessageFromQueue(
+            GET_PRODUCTS_PHARMACIES_QUEUE,
+            receivingChannel.channel,
+            pharmacyProductBroker.getProductsPharmacies
+        );
+
+        await createQueue(REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE, receivingChannel.channel);
+        pullMessageFromQueue(
+            REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE,
+            receivingChannel.channel,
+            pharmacyProductBroker.decreasePharmacyProductsAmountIfPossible
         );
     } catch (e) {
         throw e;

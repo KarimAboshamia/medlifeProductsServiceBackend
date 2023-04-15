@@ -6,6 +6,7 @@ export enum ResponseMsgAndCode {
     ERROR_NO_PRODUCTS_FOUND = 'There is no products found! ## 404',
     ERROR_NO_BARCODE_PROVIDED = 'No barcode provided! ## 400',
     ERROR_NO_ENOUGH_IMAGES_TO_DELETE = "There's no enough images to delete, product should have at least one image! ## 400",
+    ERROR_NO_ENOUGH_PHARMACY_PRODUCT_AMOUNT = "there's no enough amount for a selected product! ## 409",
 
     // SUCCESS MSGs
     SUCCESS_CREATE_PRODUCT = 'Product Created Successfully ## 200',
@@ -17,4 +18,6 @@ export enum ResponseMsgAndCode {
     SUCCESS_PHARMACY_PRODUCTS_DELETION = 'pharmacy products deleted successfully! ## 200',
     SUCCESS_PHARMACY_PRODUCTS_FETCHED = 'products fetched successfully! ## 200',
     SUCCESS_FOUND_CATEGORIES = 'categories found successfully! ## 200',
+    SUCCESS_PRODUCTS_PHARMACIES_FETCHED = 'the pharmacies of the products fetched successfully! ## 200',
+    SUCCESS_PHARMACY_PRODUCTS_AMOUNT_REDUCED = 'products amount reduced successfully! ## 200',
 }

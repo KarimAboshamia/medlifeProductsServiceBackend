@@ -2,6 +2,7 @@ import amqp from 'amqplib';
 
 import ReceivingChannelSingleton from '../models/receiving-channel-singleton';
 import pharmacyProductBroker from '../brokers/pharmacy-product-broker';
+import productBroker from '../brokers/product-broker';
 
 const BROKER_URL = process.env.BROKER_URL;
 const DEL_PHARMACY_PRODUCTS_QUEUE = process.env.DEL_PHARMACY_PRODUCTS_QUEUE;
@@ -9,6 +10,7 @@ const GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE = process.env.GET_PHARMACIES_PRODUC
 const GET_PRODUCTS_PHARMACIES_QUEUE = process.env.GET_PRODUCTS_PHARMACIES_QUEUE;
 const REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE =
     process.env.REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE;
+const CREATE_NOTIFY_WHEN_AVAILABLE_REQUEST_QUEUE = process.env.CREATE_NOTIFY_WHEN_AVAILABLE_REQUEST_QUEUE;
 
 export const pullMessageFromQueue = async (
     queueName: string,
@@ -111,6 +113,13 @@ export const callReceiver = async () => {
             REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.decreasePharmacyProductsAmountIfPossible
+        );
+
+        await createQueue(CREATE_NOTIFY_WHEN_AVAILABLE_REQUEST_QUEUE, receivingChannel.channel);
+        pullMessageFromQueue(
+            CREATE_NOTIFY_WHEN_AVAILABLE_REQUEST_QUEUE,
+            receivingChannel.channel,
+            productBroker.createNotifyWhenAvailableRequest
         );
     } catch (e) {
         throw e;

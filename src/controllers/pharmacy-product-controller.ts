@@ -5,6 +5,7 @@ import Product from '../models/admin-product-model';
 import { getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
+import { notifyWithProductNewAddedAmount } from '../utilities/notify-when-available-utility';
 
 const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
 
@@ -40,6 +41,12 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
             offer,
         }).save();
 
+        //! [5] Notify users that created notifyWhenAvailableRequest
+        // we don't care when an error occurs here
+        try {
+            await notifyWithProductNewAddedAmount(productId, pharmacyId);
+        } catch (error) {}
+
         //! [6] Return the response
         returnResponse(res, ResponseMsgAndCode.SUCCESS_PRODUCT_CREATED, {
             product: {
@@ -61,7 +68,7 @@ const modifyProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
 
     try {
         //! [2] Check that product exists
-        const product = await PharmacyProduct.findOne({ _id: productId, pharmacy: pharmacyId })
+        let product = await PharmacyProduct.findOne({ _id: productId, pharmacy: pharmacyId })
             .populate('product')
             .exec();
 
@@ -69,12 +76,23 @@ const modifyProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
             throw getError(ResponseMsgAndCode.ERROR_NO_PRODUCTS_FOUND);
         }
 
+        const previousProductAmount = product.amount;
+
         product.amount = amount;
         product.price = price;
         product.offer = offer || product.offer;
-        await product.save();
 
-        //! [3] Return the response
+        product = await product.save();
+
+        //! [3] Notify the users that created notifyWhenAvailableRequest
+        if (previousProductAmount === 0 && product.amount > 0) {
+            // we don't care when an error occurs here
+            try {
+                await notifyWithProductNewAddedAmount(product.product['_id'], pharmacyId);
+            } catch (error) {}
+        }
+
+        //! [4] Return the response
         returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
             product: {
                 ...product.toObject(),

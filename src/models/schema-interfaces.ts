@@ -46,19 +46,24 @@ export interface ICategorySchema {
 export interface IPharmacyReviewSchema {
     rate: number;
     description: string;
-    //! this ID refers to a pharmacy (IPharmacySchema)
-    pharmacy: Schema.Types.ObjectId;
-    //! this ID refers to a patient (IPatientSchema)
-    reviewer: Schema.Types.ObjectId;
+    pharmacy: string;
+    reviewer: string;
 }
 
 export interface IPharmacyProductSchema {
     //! IProductSchema object not id
     product: IProductSchema;
-    //! this ID refers to a pharmacy (IPharmacySchema)
-    pharmacy: Schema.Types.ObjectId;
+    pharmacy: string;
     amount: number;
     price: number;
     //? ex: 30% | 10 (10 pounds)
     offer: string;
+}
+
+// -------------------------------------------------------------
+
+export interface INotifyWhenAvailableRequestSchema {
+    productId: Schema.Types.ObjectId;
+    pharmacyId: string | null;
+    patientId: string;
 }

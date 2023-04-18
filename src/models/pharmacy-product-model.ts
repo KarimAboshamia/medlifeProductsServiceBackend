@@ -11,7 +11,7 @@ const pharmacyProductSchema = new Schema<IPharmacyProductSchema>(
             ref: 'Product',
         },
         pharmacy: {
-            type: Schema.Types.ObjectId,
+            type: String,
             required: true,
         },
         amount: {

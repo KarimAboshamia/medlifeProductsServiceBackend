@@ -73,6 +73,8 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
 const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
     //! [1] Extract Data
     let { barcode, name } = req.query;
+
+    console.log('here');
     try {
         name = `^${!name ? '' : name}`;
         barcode = `^${!barcode ? '' : barcode}`;
@@ -110,6 +112,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
             products: products.map((product, idx) => ({
                 ...product.toObject(),
+                pharmacy: undefined,
                 product: {
                     ...product.toObject().product,
                     images: mapProductImages(product.product.images, imagesURLs[idx]),

@@ -25,7 +25,7 @@ let usersCollection = db.collection('users');
 
 const sendNotification = async (params: {
     userId: string;
-    notificationType: 'CHAT' | 'ORDER' | 'NOTIFY_WHEN_AVAL';
+    notificationType: 'CHAT' | 'ORDER' | 'NOTIFY_WHEN_AVAL' | 'Reminder';
     notificationTitle: string;
     notificationBody: string;
     extraData?: Object;

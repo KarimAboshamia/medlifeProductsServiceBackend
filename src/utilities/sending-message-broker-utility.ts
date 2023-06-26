@@ -107,3 +107,9 @@ export const pushMessageToQueue = async (queueName: string, data: any): Promise<
         }
     });
 };
+
+const sendingMessageBrokerUtility = {
+    pushMessageToQueue: pushMessageToQueue,
+};
+
+export default sendingMessageBrokerUtility;

@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request as ExpRequest, Response as ExpResponse, NextFunction as ExpNextFun } from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
@@ -52,8 +55,10 @@ app.use((error: any, _req: ExpRequest, res: ExpResponse, _next: ExpNextFun) => {
 
 mongoose.set('strictQuery', true);
 
+const NODE_ENV = String(process.env.NODE_ENV)?.trim();
+
 mongoose
-    .connect(String(process.env.DB_URI), {
+    .connect(NODE_ENV === 'test' ? String(process.env.TEST_DB_URI) : String(process.env.DB_URI), {
         user: process.env.DB_USERNAME,
         pass: process.env.DB_PASSWORD,
         autoIndex: Boolean(process.env.DB_AUTO_INDEX),

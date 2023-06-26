@@ -4,7 +4,7 @@ import PharmacyProduct from '../models/pharmacy-product-model';
 import Product from '../models/admin-product-model';
 import { getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
-import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
+import sendingMessageBrokerUtility from '../utilities/sending-message-broker-utility';
 import { notifyWithProductNewAddedAmount } from '../utilities/notify-when-available-utility';
 
 const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
@@ -53,7 +53,11 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
                 ...pharmacyProduct.toObject(),
                 product: {
                     ...product.toObject(),
-                    images: (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])).responseURLs[0],
+                    images: (
+                        await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, [
+                            product.images,
+                        ])
+                    ).responseURLs[0],
                 },
             },
         });
@@ -98,8 +102,11 @@ const modifyProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
                 ...product.toObject(),
                 product: {
                     ...product.toObject().product,
-                    images: (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.product.images]))
-                        .responseURLs[0],
+                    images: (
+                        await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, [
+                            product.product.images,
+                        ])
+                    ).responseURLs[0],
                 },
             },
         });

@@ -5,7 +5,7 @@ import { getError, returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { startSession } from 'mongoose';
 import { mapProductImages } from '../utilities/product-images-utility';
-import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
+import sendingMessageBrokerUtility from '../utilities/sending-message-broker-utility';
 
 const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
 const DELETE_IMAGE_QUEUE = process.env.DELETE_IMAGE_QUEUE;
@@ -36,7 +36,9 @@ const postProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
             storage: req.body.storage,
         }).save();
 
-        let imagesURL = (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])).responseURLs[0];
+        let imagesURL = (
+            await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])
+        ).responseURLs[0];
 
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_CREATE_PRODUCT, {
             product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
@@ -61,7 +63,7 @@ const deleteProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
 
         await product.remove({ session });
 
-        await pushMessageToQueue(DELETE_IMAGE_QUEUE, product.images);
+        await sendingMessageBrokerUtility.pushMessageToQueue(DELETE_IMAGE_QUEUE, product.images);
 
         await session.commitTransaction();
 
@@ -101,7 +103,9 @@ const updateProduct = async (req: ExpRequest, res: ExpResponse, next: ExpNextFun
 
         product = await product.save();
 
-        let imagesURL = (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])).responseURLs[0];
+        let imagesURL = (
+            await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])
+        ).responseURLs[0];
 
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
             product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
@@ -124,7 +128,9 @@ const addImages = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) =
         product.images = product.images.concat(images);
         product = await product.save();
 
-        let imagesURL = (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])).responseURLs[0];
+        let imagesURL = (
+            await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])
+        ).responseURLs[0];
 
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_UPDATE_PRODUCT, {
             product: { ...product.toObject(), images: mapProductImages(product.images, imagesURL) },
@@ -154,9 +160,11 @@ const deleteImage = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
         product.images = product.images.filter((img) => img !== image);
         product = await product.save({ session });
 
-        await pushMessageToQueue(DELETE_IMAGE_QUEUE, [image]);
+        await sendingMessageBrokerUtility.pushMessageToQueue(DELETE_IMAGE_QUEUE, [image]);
 
-        let imagesURL = (await pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])).responseURLs[0];
+        let imagesURL = (
+            await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, [product.images])
+        ).responseURLs[0];
 
         await session.commitTransaction();
 

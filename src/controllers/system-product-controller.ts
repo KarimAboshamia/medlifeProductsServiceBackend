@@ -7,7 +7,7 @@ import { returnResponse } from '../utilities/response-utility';
 import { ResponseMsgAndCode } from '../models/response-msg-code';
 import { Types } from 'mongoose';
 import { mapProductImages } from '../utilities/product-images-utility';
-import { pushMessageToQueue } from '../utilities/sending-message-broker-utility';
+import sendingMessageBrokerUtility from '../utilities/sending-message-broker-utility';
 
 const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
 const PHARMACY_DETAILS_QUEUE = process.env.GET_PHARMACY_DETAILS_QUEUE;
@@ -51,7 +51,7 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
             .exec();
 
         let imagesURLs = (
-            await pushMessageToQueue(
+            await sendingMessageBrokerUtility.pushMessageToQueue(
                 GENERATE_URLS_QUEUE,
                 products.map((product) => product.images)
             )
@@ -97,13 +97,13 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
 
         //! [4] Add images to products
         let imagesURLs = (
-            await pushMessageToQueue(
+            await sendingMessageBrokerUtility.pushMessageToQueue(
                 GENERATE_URLS_QUEUE,
                 products.map((product) => product.product.images)
             )
         ).responseURLs;
 
-        let pharmacyDetails = await pushMessageToQueue(
+        let pharmacyDetails = await sendingMessageBrokerUtility.pushMessageToQueue(
             PHARMACY_DETAILS_QUEUE,
             products.map((product) => product.pharmacy)
         );
@@ -182,7 +182,9 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
             productsImages.push(pr.product.images);
         }
 
-        let imagesURLs = (await pushMessageToQueue(GENERATE_URLS_QUEUE, productsImages)).responseURLs;
+        let imagesURLs = (
+            await sendingMessageBrokerUtility.pushMessageToQueue(GENERATE_URLS_QUEUE, productsImages)
+        ).responseURLs;
 
         for (let pr of products) {
             pr.product.images = imagesURLs[products.indexOf(pr)];

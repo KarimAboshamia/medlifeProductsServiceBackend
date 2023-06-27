@@ -4,27 +4,11 @@ import sinon from 'sinon';
 
 import adminProductController from '../../controllers/admin-product-controller';
 import ExpTestUtil from '../utils/exp-test-util';
-import { adminProduct1, adminProduct2 } from '../utils/shared-data';
+import { adminProduct1, adminProduct2, adminProduct3, fakeImagesUrls } from '../utils/shared-data';
 import sendingMessageBrokerUtility from '../../utilities/sending-message-broker-utility';
 
 describe('Admin Products', function () {
-    const fakeImagesUrls = () => {
-        const stub = sinon.stub(sendingMessageBrokerUtility, 'pushMessageToQueue');
-
-        stub.callsFake((_qName, productsImages) => {
-            return Promise.resolve({
-                responseURLs: productsImages.map((images) => {
-                    if (Array.isArray(images)) {
-                        return images.map((img) => `https://fakeurl.com/${img}`);
-                    }
-                }),
-            });
-        });
-
-        return stub;
-    };
-
-    for (const product of [adminProduct1, adminProduct2]) {
+    for (const product of [adminProduct1, adminProduct2, adminProduct3]) {
         it(`should create a product with barcode (${product.barcode}) successfully!`, function (done) {
             const { req, res, next } = ExpTestUtil.createControllerParams({
                 req: { body: { ...product } },

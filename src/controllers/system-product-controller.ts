@@ -74,7 +74,6 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
     //! [1] Extract Data
     let { barcode, name } = req.query;
 
-    console.log('here');
     try {
         name = `^${!name ? '' : name}`;
         barcode = `^${!barcode ? '' : barcode}`;

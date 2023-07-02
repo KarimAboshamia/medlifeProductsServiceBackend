@@ -74,7 +74,8 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
     //! [1] Extract Data
     let { barcode, name } = req.query;
 
-    console.log('here');
+    console.log("Received request")
+
     try {
         name = `^${!name ? '' : name}`;
         barcode = `^${!barcode ? '' : barcode}`;
@@ -95,6 +96,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
                 .exec()
         ).filter((prod) => prod.product);
 
+        console.log("BEFORE IMAGES");
         //! [4] Add images to products
         let imagesURLs = (
             await pushMessageToQueue(
@@ -103,10 +105,13 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             )
         ).responseURLs;
 
+        console.log("Before Pharmacy details")
         let pharmacyDetails = await pushMessageToQueue(
             PHARMACY_DETAILS_QUEUE,
             products.map((product) => product.pharmacy)
         );
+
+        console.log("After images");
 
         //! [5] Return response
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {

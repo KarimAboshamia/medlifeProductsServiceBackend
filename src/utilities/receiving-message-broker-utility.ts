@@ -37,7 +37,7 @@ export const pullMessageFromQueue = async (
                     };
                 }
 
-                channel.sendToQueue(msg?.properties.replyTo!, Buffer.from(JSON.stringify(res)), {
+                await channel.sendToQueue(msg?.properties.replyTo!, Buffer.from(JSON.stringify(res)), {
                     correlationId: msg?.properties.correlationId,
                 });
             },
@@ -88,35 +88,35 @@ export const callReceiver = async () => {
         await createChannel();
 
         await createQueue(DEL_PHARMACY_PRODUCTS_QUEUE, receivingChannel.channel);
-        pullMessageFromQueue(
+        await pullMessageFromQueue(
             DEL_PHARMACY_PRODUCTS_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.deletePharmacyProducts
         );
 
         await createQueue(GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE, receivingChannel.channel);
-        pullMessageFromQueue(
+        await pullMessageFromQueue(
             GET_PHARMACIES_PRODUCTS_WITH_IDS_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.getPharmaciesProductsWithIds
         );
 
         await createQueue(GET_PRODUCTS_PHARMACIES_QUEUE, receivingChannel.channel);
-        pullMessageFromQueue(
+        await pullMessageFromQueue(
             GET_PRODUCTS_PHARMACIES_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.getProductsPharmacies
         );
 
         await createQueue(REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE, receivingChannel.channel);
-        pullMessageFromQueue(
+        await pullMessageFromQueue(
             REDUCE_PHARMACY_PRODUCTS_AMOUNT_IF_POSSIBLE_QUEUE,
             receivingChannel.channel,
             pharmacyProductBroker.decreasePharmacyProductsAmountIfPossible
         );
 
         await createQueue(CREATE_NOTIFY_WHEN_AVAILABLE_REQUEST_QUEUE, receivingChannel.channel);
-        pullMessageFromQueue(
+        await pullMessageFromQueue(
             CREATE_NOTIFY_WHEN_AVAILABLE_REQUEST_QUEUE,
             receivingChannel.channel,
             productBroker.createNotifyWhenAvailableRequest

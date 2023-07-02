@@ -32,6 +32,12 @@ const sendNotification = async (params: {
 }) => {
     const { extraData, userId, notificationType, notificationTitle, notificationBody } = params;
     const token = (await usersCollection.doc(userId).get()).get('token');
+
+    if (!token) {
+        console.log('No token found for user');
+        return;
+    }
+
     const url = 'https://fcm.googleapis.com/fcm/send';
 
     const headers = {

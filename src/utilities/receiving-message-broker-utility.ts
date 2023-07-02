@@ -81,7 +81,7 @@ export async function createQueue(queueName: string, channel: amqp.Channel) {
     try {
         console.log("create queue")
         await channel.assertQueue(queueName, { durable: false });
-        channel.prefetch(1);
+        channel.prefetch(10);
     } catch (error) {
         throw error;
     }

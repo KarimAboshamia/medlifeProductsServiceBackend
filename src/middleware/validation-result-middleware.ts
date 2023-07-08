@@ -6,6 +6,7 @@ import ResponseError from '../models/response-error';
 export const validationResultChecker = (req: ExpRequest, _res: ExpResponse, next: ExpNextFunc) => {
     const validation = validationResult(req);
 
+    //^ throw an error if the entered data is invalid
     if (!validation.isEmpty()) {
         return next(new ResponseError(validation.array().at(0)?.msg, 422));
     }

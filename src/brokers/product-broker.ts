@@ -10,12 +10,14 @@ const createNotifyWhenAvailableRequest = async (data: {
     patientId: string;
 }) => {
     try {
+        //^ find an admin product with the entered "data.productId" and throw an error if not exists
         let isValidAdminProduct = !!(await Product.findById(data.productId).exec());
 
         if (!isValidAdminProduct) {
             throw getError(ResponseMsgAndCode.ERROR_NO_PRODUCT_WITH_ID);
         }
 
+        //^ find a pharmacy product with "data.pharmacyId" that already has enough amount, if exists throw an error
         const isThereEnoughAmountAlready = !!(await PharmacyProduct.findOne({
             product: data.productId,
             pharmacy: {
@@ -34,11 +36,13 @@ const createNotifyWhenAvailableRequest = async (data: {
             );
         }
 
+        //^ find a "NotifyWhenAvailableRequest" with the entered productId and patientId
         let request = await NotifyWhenAvailableRequest.findOne({
             productId: data.productId,
             patientId: data.patientId,
         });
 
+        //^ create a new request if not exists
         if (!request) {
             request = new NotifyWhenAvailableRequest({
                 productId: data.productId,
@@ -50,6 +54,7 @@ const createNotifyWhenAvailableRequest = async (data: {
 
         await request.save();
 
+        //^ send a response back
         return returnBrokerResponse(ResponseMsgAndCode.SUCCESS_NOTIFY_WHEN_AVAILABLE_CREATION, {});
     } catch (error) {
         throw error;

@@ -6,6 +6,7 @@ export const notifyWithProductNewAddedAmount = async (
     pharmacyId: string
 ): Promise<void> => {
     try {
+        //^ find all "NotifyWhenAvailableRequest" with the entered productId and pharmacyId
         const requests = await NotifyWhenAvailableRequest.find({
             $or: [
                 {
@@ -19,9 +20,9 @@ export const notifyWithProductNewAddedAmount = async (
             ],
         });
 
-        // for each request, send notification to the request patient and delete
+        //^ for each request, send notification to the request patient and delete it
         for (const req of requests) {
-            // send notification
+            //^ send notification
             try {
                 notificationUtil.sendNotification({
                     userId: req.patientId,

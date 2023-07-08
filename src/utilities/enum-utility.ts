@@ -1,3 +1,11 @@
+/* 
+    enum E {
+        VALUE1,
+        VALUE2
+    }
+
+    getEnumValues(E) =======> [VALUE1, VALUE2]
+*/
 export const getEnumValues = (e: object) => {
     try {
         const values = Object.values(e);

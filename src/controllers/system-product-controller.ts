@@ -13,43 +13,45 @@ const GENERATE_URLS_QUEUE = process.env.GENERATE_URLS_QUEUE;
 const PHARMACY_DETAILS_QUEUE = process.env.GET_PHARMACY_DETAILS_QUEUE;
 
 const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract query params
     let { page, itemsPerPage, barcode, name, type, categories } = req.query;
 
     try {
+        //^ define filters
         name = `^${!name ? '' : name}`;
         barcode = `^${!barcode ? '' : barcode}`;
         type = `^${!type ? '' : type + '$'}`;
 
-        //! [2] Create filter
         const productFilter: any = {
             name: { $regex: new RegExp(name), $options: 'i' },
             barcode: { $regex: new RegExp(barcode), $options: 'i' },
             type: { $regex: new RegExp(type), $options: 'i' },
         };
 
-        //! [3] Add categories to filter - IF EXISTS
+        //^ add categories to filter - IF EXISTS
         if (!!categories) {
             productFilter.categories = {
                 $all: (categories as string).split(',').map((cat) => cat.trim()),
             };
         }
 
-        //! [4] Get products
+        //^ define pagination settings
         let limitValue =
             itemsPerPage?.length == 0 || isNaN(+itemsPerPage) || +itemsPerPage < 1 ? 20 : +itemsPerPage;
         let skipValue = page?.length == 0 || isNaN(+page) || +page < 1 ? 1 : +page;
 
+        //^ get next page products (they will be used to check if there's a next page or not)
         const nextProducts = await Product.find(productFilter)
             .limit(limitValue)
             .skip(skipValue * limitValue)
             .exec();
 
+        //^ get current page products
         let products = await Product.find(productFilter)
             .limit(limitValue)
             .skip((skipValue - 1) * limitValue)
             .exec();
 
+        //^ generate product images urls
         let imagesURLs = (
             await pushMessageToQueue(
                 GENERATE_URLS_QUEUE,
@@ -57,7 +59,7 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
             )
         ).responseURLs;
 
-        //! [6] Return response
+        //^ send a response back
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
             products: products.map((product, idx) => ({
                 ...product.toObject(),
@@ -71,22 +73,19 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
 };
 
 const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract Data
     let { barcode, name } = req.query;
 
-    console.log("Received request")
-
     try {
+        //^ define filters
         name = `^${!name ? '' : name}`;
         barcode = `^${!barcode ? '' : barcode}`;
 
-        //! [2] Create filter
         const productFilter: any = {
             name: { $regex: new RegExp(name), $options: 'i' },
             barcode: { $regex: new RegExp(barcode), $options: 'i' },
         };
 
-        //! [3] Get products
+        //^ get product that match the filters
         let products = (
             await PharmacyProduct.find()
                 .populate({
@@ -96,8 +95,7 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
                 .exec()
         ).filter((prod) => prod.product);
 
-        console.log("BEFORE IMAGES");
-        //! [4] Add images to products
+        //^ generate images urls
         let imagesURLs = (
             await pushMessageToQueue(
                 GENERATE_URLS_QUEUE,
@@ -105,15 +103,13 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
             )
         ).responseURLs;
 
-        console.log("Before Pharmacy details")
+        //^ get pharmacy details
         let pharmacyDetails = await pushMessageToQueue(
             PHARMACY_DETAILS_QUEUE,
             products.map((product) => product.pharmacy)
         );
 
-        console.log("After images");
-
-        //! [5] Return response
+        //^ send a response back
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
             products: products.map((product, idx) => ({
                 ...product.toObject(),
@@ -131,34 +127,34 @@ const getProductPharmacy = async (req: ExpRequest, res: ExpResponse, next: ExpNe
 };
 
 const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc) => {
-    //! [1] Extract Data
     const { pharmacyId } = req.params;
     let { page, itemsPerPage, barcode, name, type, categories } = req.query;
 
     try {
+        //^ define filters
         name = `^${!name ? '' : name}`;
         barcode = `^${!barcode ? '' : barcode}`;
         type = `^${!type ? '' : type + '$'}`;
 
-        //! [2] Create filter
         const productFilter: any = {
             name: { $regex: new RegExp(name), $options: 'i' },
             barcode: { $regex: new RegExp(barcode), $options: 'i' },
             type: { $regex: new RegExp(type), $options: 'i' },
         };
 
-        //! [3] Add categories to filter - IF EXISTS
+        //^ add categories to filter - IF EXISTS
         if (!!categories) {
             productFilter.categories = {
                 $all: (categories as string).split(',').map((cat) => cat.trim()),
             };
         }
 
-        //! [4] Get products
+        //^ define pagination settings
         let limitValue =
             itemsPerPage?.length == 0 || isNaN(+itemsPerPage) || +itemsPerPage < 1 ? 20 : +itemsPerPage;
         let skipValue = page?.length == 0 || isNaN(+page) || +page < 1 ? 1 : +page;
 
+        //^ get next page products (they will be used to check if there's a next page or not)
         const nextProducts = (
             await PharmacyProduct.find({ pharmacy: new Types.ObjectId(pharmacyId) })
                 .populate({
@@ -170,6 +166,7 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
                 .exec()
         ).filter((prod) => prod.product);
 
+        //^ get current page products
         let products = (
             await PharmacyProduct.find({ pharmacy: new Types.ObjectId(pharmacyId) })
                 .populate({
@@ -181,19 +178,22 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
                 .exec()
         ).filter((prod) => prod.product);
 
-        //! [5] Add images to products
         let productsImages = [];
+
+        //^ extract images ids for each product
         for (let pr of products) {
             productsImages.push(pr.product.images);
         }
 
+        //^ generate product images urls
         let imagesURLs = (await pushMessageToQueue(GENERATE_URLS_QUEUE, productsImages)).responseURLs;
 
+        //^ replace images ids with the generated url
         for (let pr of products) {
             pr.product.images = imagesURLs[products.indexOf(pr)];
         }
 
-        //! [6] Return response
+        //^ send a response back
         return returnResponse(res, ResponseMsgAndCode.SUCCESS_FOUND_PRODUCTS, {
             products,
             hasNext: nextProducts.length > 0,

@@ -35,10 +35,12 @@ app.use((req, res, next) => {
 
 app.use('/product', apiRouter);
 
+//^ not found route
 app.use((req: ExpRequest, _res, _next: ExpNextFun) => {
     throw new ResponseError(`sorry, it seems that the URL '${req.url}' is not provided!`, 404);
 });
 
+//^ a global error middleware (a middleware that catches any error)
 app.use((error: any, _req: ExpRequest, res: ExpResponse, _next: ExpNextFun) => {
     const message = error.message || 'an unknown error have been occurred!';
     const statusCode = error.statusCode || 500;
@@ -50,6 +52,7 @@ app.use((error: any, _req: ExpRequest, res: ExpResponse, _next: ExpNextFun) => {
     });
 });
 
+//^ database connection
 mongoose.set('strictQuery', true);
 
 mongoose

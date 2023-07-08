@@ -31,10 +31,11 @@ const sendNotification = async (params: {
     extraData?: Object;
 }) => {
     const { extraData, userId, notificationType, notificationTitle, notificationBody } = params;
+
+    //^ getting client device token
     const token = (await usersCollection.doc(userId).get()).get('token');
 
     if (!token) {
-        console.log('No token found for user');
         return;
     }
 
@@ -45,6 +46,7 @@ const sendNotification = async (params: {
         Authorization: process.env.FIREBASE_STORE_AUTH_TOKEN,
     };
 
+    //^ prepare notification body 
     const body = {
         to: token,
         notification: {
@@ -57,6 +59,7 @@ const sendNotification = async (params: {
         },
     };
 
+    //^ send a notification
     await axios.post(url, body, { headers });
 };
 

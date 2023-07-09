@@ -36,7 +36,7 @@ const getProducts = async (req: ExpRequest, res: ExpResponse, next: ExpNextFunc)
 
         //^ define pagination settings
         let limitValue =
-            itemsPerPage?.length == 0 || isNaN(+itemsPerPage) || +itemsPerPage < 1 ? 20 : +itemsPerPage;
+            itemsPerPage?.length == 0 || isNaN(+itemsPerPage) || +itemsPerPage < 1 ? 80 : +itemsPerPage;
         let skipValue = page?.length == 0 || isNaN(+page) || +page < 1 ? 1 : +page;
 
         //^ get next page products (they will be used to check if there's a next page or not)
@@ -151,7 +151,7 @@ const getPharmacyProducts = async (req: ExpRequest, res: ExpResponse, next: ExpN
 
         //^ define pagination settings
         let limitValue =
-            itemsPerPage?.length == 0 || isNaN(+itemsPerPage) || +itemsPerPage < 1 ? 20 : +itemsPerPage;
+            itemsPerPage?.length == 0 || isNaN(+itemsPerPage) || +itemsPerPage < 1 ? 80 : +itemsPerPage;
         let skipValue = page?.length == 0 || isNaN(+page) || +page < 1 ? 1 : +page;
 
         //^ get next page products (they will be used to check if there's a next page or not)
